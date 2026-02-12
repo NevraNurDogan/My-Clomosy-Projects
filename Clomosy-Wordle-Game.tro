@@ -1,0 +1,215 @@
+var
+  MyForm: TclForm;
+  WordToGuess: String;
+  CurrentRow, i, j, TagCounter: Integer;
+  MainGridContent, RowLayout: TclLayout;
+  TempEdit: TclProEdit;
+  CheckBtn: TClProButton;
+  HintLabel: TclLabel;
+  CategoryCombo: TclComboBox; 
+  EditList: array[26] of TclProEdit;
+
+void SetupNewGame;
+var
+  SelectedCat: String;
+  RandomIdx: Integer;
+{
+  SelectedCat = CategoryCombo.Text;
+
+  RandomIdx = clMath.GenerateRandom(0, 4); 
+  
+  if (SelectedCat == 'Hayvan')
+  {
+    if (RandomIdx == 0) { WordToGuess = 'BUKALE'; HintLabel.Text = 'İpucu: Renklerin efendisi, uyum ustası.'; } 
+    if (RandomIdx == 0) { WordToGuess = 'PANDA'; HintLabel.Text = 'İpucu: Bambu ormanlarının utangaç sakini.'; }
+    else if (RandomIdx == 1) { WordToGuess = 'AKREP'; HintLabel.Text = 'İpucu: Gece avlanan, zehirli bir kuyruk.'; }
+    else if (RandomIdx == 2) { WordToGuess = 'KARTAL'; HintLabel.Text = 'İpucu: Göklerin en keskin gözlü hükümdarı.'; }
+    else if (RandomIdx == 3) { WordToGuess = 'BALİNA'; HintLabel.Text = 'İpucu: Okyanusun şarkı söyleyen devi.'; }
+    else { WordToGuess = 'TİLKİ'; HintLabel.Text = 'İpucu: Kurnazlığıyla masallara konu olan.'; }
+  }
+  else if (SelectedCat == 'Ülke')
+  {
+    if (RandomIdx == 0) { WordToGuess = 'MISIR'; HintLabel.Text = 'İpucu: Piramitlerin ve kadim nehrin yurdu.'; }
+    else if (RandomIdx == 1) { WordToGuess = 'İTALYA'; HintLabel.Text = 'İpucu: Tarihin ve sanatın çizme şeklindeki evi.'; }
+    else if (RandomIdx == 2) { WordToGuess = 'FRANSA'; HintLabel.Text = 'İpucu: Modanın kalbi, demir kulelerin şehri.'; }
+    else if (RandomIdx == 3) { WordToGuess = 'JAPON'; HintLabel.Text = 'İpucu: Güneşin ilk doğduğu ada ülkesi.'; } 
+    else { WordToGuess = 'RUSYA'; HintLabel.Text = 'İpucu: Dünyanın en geniş topraklarına sahip dev.'; }
+  }
+  else if (SelectedCat == 'Meslek')
+  {
+    if (RandomIdx == 0) { WordToGuess = 'HAKİM'; HintLabel.Text = 'İpucu: Kararlarıyla adaletin terazisini tutan.'; }
+    else if (RandomIdx == 1) { WordToGuess = 'PİLOT'; HintLabel.Text = 'İpucu: Gökyüzünde rotasını çizen kaptan.'; }
+    else if (RandomIdx == 2) { WordToGuess = 'MİMAR'; HintLabel.Text = 'İpucu: Hayalleri çizgiye, çizgileri yapıya dönüştüren.'; }
+    else if (RandomIdx == 3) { WordToGuess = 'KASAP'; HintLabel.Text = 'İpucu: Bıçak ustalığını tezgahında konuşturan.'; }
+    else { WordToGuess = 'YAZAR'; HintLabel.Text = 'İpucu: Kelimelerle yeni dünyalar inşa eden.'; }
+  }
+  else if (SelectedCat == 'Gök Cisimleri')
+  {
+    if (RandomIdx == 0) { WordToGuess = 'VENÜS'; HintLabel.Text = 'İpucu: Gökyüzünün en parlak, en sıcak mücevheri.'; }
+    else if (RandomIdx == 1) { WordToGuess = 'METEOR'; HintLabel.Text = 'İpucu: Atmosferde iz bırakan davetsiz misafir.'; }
+    else if (RandomIdx == 2) { WordToGuess = 'DÜNYA'; HintLabel.Text = 'İpucu: Üzerinde yaşamın yeşerdiği tek mavi nokta.'; }
+    else if (RandomIdx == 3) { WordToGuess = 'GÜNEŞ'; HintLabel.Text = 'İpucu: Sistemin kalbi, enerjinin bitmez kaynağı.'; }
+    else { WordToGuess = 'SAMAN'; HintLabel.Text = 'İpucu: Milyarlarca yıldızın oluşturduğu nehir (Yolu).'; }
+  }
+
+  CurrentRow = 1;
+  for (i = 1 to 25)
+  {
+    EditList[i].Text = '';
+    EditList[i].ReadOnly = False;
+    EditList[i].clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#333333');
+    EditList[i].SetclProSettings(EditList[i].clProSettings);
+  }
+  EditList[1].SetFocus;
+  ShowMessage(SelectedCat + ' kategorisi seçildi!');
+}
+
+void NextFocus;
+var
+  ActiveEdit, NextComp: TclProEdit;
+  CurrentTag: Integer;
+{
+  ActiveEdit = TclProEdit(MyForm.clSender);
+  CurrentTag = ActiveEdit.clTagInt; 
+  if ((Length(ActiveEdit.Text) > 0) && (CurrentTag mod 5 <> 0))
+  {
+    NextComp = EditList[CurrentTag + 1];
+    if (NextComp <> nil) NextComp.SetFocus;
+  }
+}
+
+void CheckGuess;
+var 
+  Letter, TargetLetter, CurrentUserGuess: String; 
+  k, StartIndex: Integer;
+  IsWin: Boolean;
+  TargetEdit: TclProEdit;
+{
+  CurrentUserGuess = '';
+  IsWin = True;
+  StartIndex = (CurrentRow - 1) * 5;
+
+  for (k = 1 to 5)
+  {
+    TargetEdit = EditList[StartIndex + k];
+    CurrentUserGuess = CurrentUserGuess + UpperCase(TargetEdit.Text);
+  }
+
+
+  if (Length(CurrentUserGuess) < 5) 
+  {
+    ShowMessage('Harfleri tamamlamadan tahmin yürütemezsin!');
+    Exit;
+  }
+
+  for (k = 1 to 5)
+  {
+    TargetEdit = EditList[StartIndex + k];
+    Letter = Copy(CurrentUserGuess, k, 1);
+    TargetLetter = Copy(WordToGuess, k, 1);
+    
+    if (Letter == TargetLetter)
+      TargetEdit.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#3cb187');
+    else if (Pos(Letter, WordToGuess) > 0)
+    {
+      TargetEdit.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#c9b458');
+      IsWin = False;
+    }
+    else
+    {
+      TargetEdit.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#787c7e');
+      IsWin = False;
+    }
+    TargetEdit.SetclProSettings(TargetEdit.clProSettings);
+    TargetEdit.ReadOnly = True;
+  }
+
+  if (IsWin == True)
+    ShowMessage('Muazzam! Gizemi çözdün: ' + WordToGuess);
+  else
+  {
+    if (CurrentRow >= 5)
+      ShowMessage('Tüm hakların tükendi.Kelime şuydu: ' + WordToGuess);
+    else
+    {
+      CurrentRow = CurrentRow + 1;
+      EditList[((CurrentRow - 1) * 5) + 1].SetFocus;
+    }
+  }
+}
+
+{
+  MyForm = TclForm.Create(Self);
+  WordToGuess = 'DÜNYA'; 
+  CurrentRow = 1;
+  TagCounter = 1;
+
+  CategoryCombo = MyForm.AddNewComboBox(MyForm, 'CategoryCombo');
+  CategoryCombo.Align = alTop;
+  CategoryCombo.Margins.Top = 15;
+  CategoryCombo.Margins.Left = 30;
+  CategoryCombo.Margins.Right = 30;
+  CategoryCombo.AddItem('Hayvan','0');
+  CategoryCombo.AddItem('Ülke','1');
+  CategoryCombo.AddItem('Meslek','2');
+  CategoryCombo.AddItem('Gök Cisimleri','3');
+  MyForm.AddNewEvent(CategoryCombo, tbeOnChange, 'SetupNewGame');
+
+  HintLabel = MyForm.AddNewLabel(MyForm, 'HintLabel', 'Zihnini hazırla ve bir kategori seç.');
+  HintLabel.Align = alTop;
+  HintLabel.Margins.Top = 15;
+  HintLabel.Margins.Left = 30;
+  HintLabel.TextSettings.Font.Size = 14;
+  HintLabel.TextSettings.Font.Style = [fsItalic];
+  HintLabel.TextSettings.FontColor = clAlphaColor.clHexToColor('#FFD700');
+
+  MainGridContent = MyForm.AddNewLayout(MyForm, 'MainGridContent');
+  MainGridContent.Align = alCenter;
+  MainGridContent.Width = 320;
+  MainGridContent.Height = 350;
+
+  for (i = 1 to 5)
+  {
+    RowLayout = MyForm.AddNewLayout(MainGridContent, 'Row' + IntToStr(i));
+    RowLayout.Align = alTop; 
+    RowLayout.Height = 60;
+    RowLayout.Margins.Bottom = 8;
+
+    for (j = 1 to 5)
+    {
+      TempEdit = MyForm.AddNewProEdit(RowLayout, 'Edit' + IntToStr(TagCounter), '');
+      TempEdit.Align = alLeft;
+      TempEdit.Width = 55;
+      TempEdit.Margins.Left = 5;
+      TempEdit.MaxLength = 1;
+      TempEdit.clTagInt = TagCounter; 
+      TempEdit.clProSettings.FontSize = 22;
+      TempEdit.clProSettings.FontColor = clAlphaColor.clHexToColor('#ffffff');
+      TempEdit.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#333333');
+      TempEdit.clProSettings.IsFill = True;
+      TempEdit.clProSettings.IsRound = True;
+      TempEdit.SetclProSettings(TempEdit.clProSettings);
+      MyForm.AddNewEvent(TempEdit, tbeOnChange, 'NextFocus');
+      EditList[TagCounter] = TempEdit;
+      TagCounter = TagCounter + 1;
+    }
+  }
+
+  CheckBtn = MyForm.AddNewProButton(MyForm, 'CheckBtn', 'KONTROL ET');
+  CheckBtn.Align = alBottom;
+  CheckBtn.Height = 55;
+  CheckBtn.Margins.Bottom = 25;
+  CheckBtn.Margins.Left = 50;
+  CheckBtn.Margins.Right = 50;
+  CheckBtn.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#4B0082');
+  CheckBtn.clProSettings.FontColor = clAlphaColor.clHexToColor('#ffffff');
+  CheckBtn.clProSettings.IsRound = True;
+  CheckBtn.clProSettings.RoundHeight = 15;
+  CheckBtn.SetclProSettings(CheckBtn.clProSettings);
+  MyForm.AddNewEvent(CheckBtn, tbeOnClick, 'CheckGuess');
+
+  MyForm.Run;
+}
+
+//onChangeTracking   her harfe girince diğerine geçecek 
+
