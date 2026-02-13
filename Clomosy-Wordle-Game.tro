@@ -141,7 +141,7 @@ var
 {
   MyForm = TclForm.Create(Self);
   WordToGuess = 'DÜNYA'; 
-  CurrentRow = 1;
+  CurrentRow = 5;
   TagCounter = 1;
 
   CategoryCombo = MyForm.AddNewComboBox(MyForm, 'CategoryCombo');
@@ -173,28 +173,32 @@ var
     RowLayout = MyForm.AddNewLayout(MainGridContent, 'Row' + IntToStr(i));
     RowLayout.Align = alTop; 
     RowLayout.Height = 60;
-    RowLayout.Margins.Bottom = 8;
+    RowLayout.Margins.Top = 5; 
 
     for (j = 1 to 5)
     {
       TempEdit = MyForm.AddNewProEdit(RowLayout, 'Edit' + IntToStr(TagCounter), '');
       TempEdit.Align = alLeft;
       TempEdit.Width = 55;
-      TempEdit.Margins.Left = 5;
+      TempEdit.Margins.Left = 5; 
+      
       TempEdit.MaxLength = 1;
       TempEdit.clTagInt = TagCounter; 
+      
+  
+      MyForm.AddNewEvent(TempEdit, tbeOnChange, 'NextFocus');
+ 
       TempEdit.clProSettings.FontSize = 22;
       TempEdit.clProSettings.FontColor = clAlphaColor.clHexToColor('#ffffff');
       TempEdit.clProSettings.BackgroundColor = clAlphaColor.clHexToColor('#333333');
       TempEdit.clProSettings.IsFill = True;
       TempEdit.clProSettings.IsRound = True;
       TempEdit.SetclProSettings(TempEdit.clProSettings);
-      MyForm.AddNewEvent(TempEdit, tbeOnChange, 'NextFocus');
+      
       EditList[TagCounter] = TempEdit;
       TagCounter = TagCounter + 1;
     }
   }
-
   CheckBtn = MyForm.AddNewProButton(MyForm, 'CheckBtn', 'KONTROL ET');
   CheckBtn.Align = alBottom;
   CheckBtn.Height = 55;
@@ -210,6 +214,4 @@ var
 
   MyForm.Run;
 }
-
-//onChangeTracking   her harfe girince diğerine geçecek 
-
+ 
